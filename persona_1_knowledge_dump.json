@@ -1,0 +1,115 @@
+[
+    {
+        "id": "interests_0",
+        "text": "I enjoy hiking, photography, and reading science fiction.",
+        "metadata": {
+            "confidence": 0.9,
+            "category": "interests"
+        }
+    },
+    {
+        "id": "interests_1",
+        "text": "I love photography and often spend weekends capturing landscapes.",
+        "metadata": {
+            "category": "interests"
+        }
+    },
+    {
+        "id": "career_2",
+        "text": "My favorite programming language is Python because it is versatile.",
+        "metadata": {
+            "category": "career"
+        }
+    },
+    {
+        "id": "interests_3",
+        "text": "I enjoy hiking and exploring new trails during vacations.",
+        "metadata": {
+            "category": "interests"
+        }
+    },
+    {
+        "id": "interests_4",
+        "text": "I love photography and often spend weekends capturing landscapes.",
+        "metadata": {
+            "category": "interests"
+        }
+    },
+    {
+        "id": "career_5",
+        "text": "My favorite programming language is Python because it is versatile.",
+        "metadata": {
+            "category": "career"
+        }
+    },
+    {
+        "id": "interests_6",
+        "text": "I enjoy hiking and exploring new trails during vacations.",
+        "metadata": {
+            "category": "interests"
+        }
+    },
+    {
+        "id": "interests_7",
+        "text": "I love photography and often spend weekends capturing landscapes.",
+        "metadata": {
+            "category": "interests"
+        }
+    },
+    {
+        "id": "career_8",
+        "text": "My favorite programming language is Python because it is versatile.",
+        "metadata": {
+            "category": "career"
+        }
+    },
+    {
+        "id": "interests_9",
+        "text": "I enjoy hiking and exploring new trails during vacations.",
+        "metadata": {
+            "category": "interests"
+        }
+    },
+    {
+        "id": "persnol_10",
+        "text": "hi im koushik",
+        "metadata": {
+            "category": "persnol"
+        }
+    },
+    {
+        "id": "personal_11",
+        "text": "koushik is good boy",
+        "metadata": {
+            "category": "personal"
+        }
+    },
+    {
+        "id": "personal_12",
+        "text": "koushik has a girlfriend,her name is nikhitha.",
+        "metadata": {
+            "category": "personal"
+        }
+    },
+    {
+        "id": "personal_13",
+        "text": "koushik is a good boy he is very mature and calm in nature",
+        "metadata": {
+            "category": "personal"
+        }
+    },
+    {
+        "id": "personal_14",
+        "text": "koushik has a girlfriend,her name is nikhitha.",
+        "metadata": {
+            "category": "personal"
+        }
+    },
+    {
+        "id": "personal_15",
+        "text": "koushik likes to hike hills in his free time and he does computer surfing",
+        "metadata": {
+            "category": "personal"
+        }
+    }
+]

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Persona RAG Chat</title>
+<style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background-color: #f3f4f6;
+  display: flex;
+  height: 100vh;
+}
+#sidebar {
+  width: 280px;
+  background-color: #1f2937;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+#sidebar h2 {
+  text-align: center;
+  color: #60a5fa;
+}
+#sidebar input, #sidebar textarea {
+  width: 100%;
+  padding: 6px;
+  border: none;
+  border-radius: 6px;
+  margin: 5px 0;
+}
+#sidebar button {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 8px;
+  margin: 4px 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+#sidebar button:hover {
+  background-color: #2563eb;
+}
+#knowledgeList {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-top: 10px;
+  padding: 6px;
+  background: #374151;
+  border-radius: 8px;
+}
+.knowledge-item {
+  background: #4b5563;
+  padding: 6px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: fadeIn 0.4s ease-in-out;
+}
+.knowledge-text {
+  color: #e5e7eb;
+  font-size: 0.9em;
+  flex: 1;
+  margin-right: 5px;
+  overflow-wrap: anywhere;
+}
+#chatArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+}
+#chatHeader {
+  padding: 12px 20px;
+  background-color: #2563eb;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+#chatHeader button {
+  background-color: #3b82f6;
+  border: none;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+#chatHeader button:hover {
+  background-color: #1d4ed8;
+}
+#rewardStats {
+  background: #f3f4f6;
+  padding: 5px 15px;
+  color: #111;
+  font-size: 14px;
+}
+#chatLog {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.message {
+  margin-bottom: 15px;
+  max-width: 70%;
+  padding: 10px 15px;
+  border-radius: 10px;
+  word-wrap: break-word;
+  position: relative;
+  animation: fadeIn 0.3s ease-in-out;
+}
+.user {
+  align-self: flex-end;
+  background-color: #3b82f6;
+  color: white;
+}
+.assistant {
+  align-self: flex-start;
+  background-color: #e5e7eb;
+  color: black;
+}
+.feedback-buttons {
+  display: none;
+  position: absolute;
+  bottom: -22px;
+  right: 10px;
+}
+.message.assistant:hover .feedback-buttons {
+  display: block;
+}
+.feedback-buttons button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+}
+.typing {
+  font-style: italic;
+  color: gray;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+#chatInputArea {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border-top: 1px solid #ccc;
+  background-color: #f9fafb;
+}
+#chatText {
+  flex: 1;
+  resize: none;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+#conversationMode {
+  margin-left: 10px;
+  padding: 6px;
+}
+#sendBtn {
+  margin-left: 10px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+#sendBtn:hover {
+  background-color: #2563eb;
+}
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <h2>Persona RAG</h2>
+  <label>Persona ID</label>
+  <input type="number" id="personaId" value="1">
+  <button onclick="initPersona()">Initialize Persona</button>
+  <button onclick="showKnowledgeGaps()">Show Gaps</button>
+  <hr style="border-color:#4b5563;">
+  <h4>Add Knowledge</h4>
+  <textarea id="knowledgeText" placeholder="Enter knowledge..."></textarea>
+  <input type="text" id="knowledgeCategory" placeholder="Category (e.g. personal)">
+  <button onclick="addKnowledge()">Add</button>
+  <h4>Knowledge Base</h4>
+  <div id="knowledgeList"></div>
+</div>
+
+<div id="chatArea">
+  <div id="chatHeader">
+    Persona Chat
+    <button onclick="clearChat()">🧹 Clear Chat</button>
+  </div>
+  <div id="rewardStats">
+    👍 Likes: <span id="likesCount">0</span> | 👎 Dislikes: <span id="dislikesCount">0</span>
+  </div>
+  <div id="chatLog"></div>
+  <div id="chatInputArea">
+    <textarea id="chatText" placeholder="Type a message..."></textarea>
+    <select id="conversationMode">
+      <option value="casual">Casual</option>
+      <option value="professional">Professional</option>
+      <option value="creative">Creative</option>
+    </select>
+    <button id="sendBtn" onclick="sendChat()">Send</button>
+  </div>
+</div>
+
+<script>
+const API_BASE = "http://localhost:8000/persona";
+let knowledgeStore = [];
+
+function logMessage(role, text, typing=false) {
+  const chatLog = document.getElementById('chatLog');
+  const div = document.createElement('div');
+  div.className = 'message ' + role + (typing ? ' typing' : '');
+  div.textContent = text;
+  chatLog.appendChild(div);
+  chatLog.scrollTop = chatLog.scrollHeight;
+  return div;
+}
+
+function clearChat() {
+  document.getElementById('chatLog').innerHTML = "";
+}
+
+async function typeResponse(text) {
+  const chatLog = document.getElementById('chatLog');
+  const div = logMessage("assistant", "");
+  for (let i = 0; i < text.length; i++) {
+    div.textContent += text[i];
+    await new Promise(r => setTimeout(r, 20));
+  }
+
+  // Add hover feedback buttons
+  const feedbackDiv = document.createElement('div');
+  feedbackDiv.className = "feedback-buttons";
+  feedbackDiv.innerHTML = `
+    <button onclick="sendFeedback('${text.replace(/'/g, "\\'")}', 1)">👍</button>
+    <button onclick="sendFeedback('${text.replace(/'/g, "\\'")}', -1)">👎</button>
+  `;
+  div.appendChild(feedbackDiv);
+}
+
+// Initialize persona
+async function initPersona() {
+  const pid = document.getElementById('personaId').value;
+  logMessage("assistant", "Initializing persona...");
+  try {
+    const res = await fetch(`${API_BASE}/${pid}/init`, { method: 'POST' });
+    const data = await res.json();
+    await typeResponse("Persona initialized successfully ✅");
+    updateRewardStats(pid);
+    setTimeout(() => loadKnowledge(pid), 700);
+  } catch {
+    typeResponse("❌ Failed to initialize persona");
+  }
+}
+
+// Load all knowledge
+async function loadKnowledge(pid) {
+  const res = await fetch(`${API_BASE}/${pid}/knowledge`);
+  const data = await res.json();
+
+  if (data.knowledge && data.knowledge.length > 0) {
+    knowledgeStore = data.knowledge.map((k, i) => ({
+      id: i,
+      text: k.text || "",
+      category: k.metadata?.category || "general"
+    }));
+    updateKnowledgeList();
+    await typeResponse(`Loaded ${knowledgeStore.length} knowledge items ✅`);
+  } else {
+    knowledgeStore = [];
+    updateKnowledgeList();
+    await typeResponse("No knowledge found for this persona yet.");
+  }
+}
+
+// Add new knowledge
+async function addKnowledge() {
+  const pid = document.getElementById('personaId').value;
+  const text = document.getElementById('knowledgeText').value.trim();
+  const category = document.getElementById('knowledgeCategory').value || "general";
+  if (!text) return alert("Please enter knowledge text.");
+
+  await fetch(`${API_BASE}/${pid}/knowledge/add`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ text, metadata: { category } })
+  });
+
+  document.getElementById('knowledgeText').value = "";
+  document.getElementById('knowledgeCategory').value = "";
+  await loadKnowledge(pid);
+}
+
+// Update sidebar knowledge list
+function updateKnowledgeList() {
+  const list = document.getElementById('knowledgeList');
+  list.innerHTML = "";
+  if (knowledgeStore.length === 0) {
+    list.innerHTML = `<p style="color:#9ca3af;text-align:center;">No knowledge yet.</p>`;
+    return;
+  }
+  knowledgeStore.forEach(item => {
+    const div = document.createElement('div');
+    div.className = "knowledge-item";
+    div.innerHTML = `
+      <div class="knowledge-text"><b>${item.category}</b>: ${item.text}</div>
+      <button title="Delete" onclick="deleteKnowledge(${item.id})">🗑️</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+// Delete knowledge
+async function deleteKnowledge(id) {
+  const pid = document.getElementById('personaId').value;
+  await fetch(`${API_BASE}/${pid}/knowledge/${id}`, { method: 'DELETE' });
+  knowledgeStore = knowledgeStore.filter(k => k.id !== id);
+  updateKnowledgeList();
+  await typeResponse("Knowledge deleted 🗑️");
+}
+
+// Chat
+async function sendChat() {
+  const pid = document.getElementById('personaId').value;
+  const text = document.getElementById('chatText').value.trim();
+  const mode = document.getElementById('conversationMode').value;
+  if (!text) return;
+
+  logMessage("user", text);
+  document.getElementById('chatText').value = "";
+
+  const typingDiv = logMessage("assistant", "Typing...", true);
+  const res = await fetch(`${API_BASE}/${pid}/chat`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ query: text, conversation_mode: mode })
+  });
+  const data = await res.json();
+  typingDiv.remove();
+  await typeResponse(data.response || "No response received.");
+}
+
+// Show knowledge gaps
+async function showKnowledgeGaps() {
+  const pid = document.getElementById('personaId').value;
+  const res = await fetch(`${API_BASE}/${pid}/knowledge_gaps`);
+  const data = await res.json();
+  await typeResponse("Knowledge gaps: " + data.gaps.join(", "));
+}
+
+// Feedback
+async function sendFeedback(response, score) {
+  const pid = document.getElementById('personaId').value;
+  const query = "User feedback";
+  await fetch(`${API_BASE}/${pid}/feedback`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ query, response, score })
+  });
+  updateRewardStats(pid);
+}
+
+// Refresh reward stats
+async function updateRewardStats(pid) {
+  const res = await fetch(`${API_BASE}/${pid}/feedback/stats`);
+  const data = await res.json();
+  document.getElementById('likesCount').textContent = data.likes;
+  document.getElementById('dislikesCount').textContent = data.dislikes;
+}
+</script>
+
+</body>
+</html>
